@@ -1,0 +1,23 @@
+{
+  "name": "stac-marine-backend",
+  "version": "1.0.0",
+  "main": "server.ts",
+  "type": "module",
+  "scripts": {
+    "start": "node server.ts",
+    "dev": "tsx server.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.10.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.5",
+    "@types/nodemailer": "^6.4.17",
+    "tsx": "^4.19.3"
+  }
+}
