@@ -102,7 +102,7 @@ const generateCertificateBuffer = async (name: string): Promise<Buffer> => {
     const templateBuffer = Buffer.from(await response.arrayBuffer());
 
     // Create SVG overlay for the name
-    // Coordinates: Centered at ~48.Intranet Website Annual Maintenance5% height based on previous component logic
+    // Coordinates: Centered at ~48.5% height based on previous component logic
     // Template is ~1200x848
     const width = 848;
     const height = 1200;
@@ -394,7 +394,6 @@ async function startServer() {
 
 startServer();
 export default app;
-
 
 /*
 import express from 'express';
