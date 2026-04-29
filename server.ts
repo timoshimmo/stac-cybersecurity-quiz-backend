@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import mongoose from 'mongoose';
 import path from 'path';
 import cors from 'cors';
@@ -103,7 +102,7 @@ const generateCertificateBuffer = async (name: string): Promise<Buffer> => {
     const templateBuffer = Buffer.from(await response.arrayBuffer());
 
     // Create SVG overlay for the name
-    // Coordinates: Centered at ~48.5% height based on previous component logic
+    // Coordinates: Centered at ~48.Intranet Website Annual Maintenance5% height based on previous component logic
     // Template is ~1200x848
     const width = 848;
     const height = 1200;
@@ -375,22 +374,17 @@ async function startServer() {
 
     await connectDB().catch(err => console.error("Initial DB connection failed", err.message));
     
-    if (process.env.NODE_ENV !== "production") {
-      const vite = await createViteServer({ 
-        server: { middlewareMode: true }, 
-        appType: "spa",
-        configFile: path.join(process.cwd(), 'vite.config.ts'),
-        root: process.cwd()
-      });
-      app.use(vite.middlewares);
-    } else {
-      const distPath = path.join(process.cwd(), 'dist');
-      app.use(express.static(distPath));
-      app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
-    }
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      // Don't intercept API routes
+      if (req.url.startsWith('/api')) return;
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Serving static files from ${distPath}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
@@ -400,8 +394,6 @@ async function startServer() {
 
 startServer();
 export default app;
-
-
 
 
 /*
