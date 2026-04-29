@@ -5,6 +5,7 @@ import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import sharp from 'sharp';
 
 dotenv.config();
 
@@ -50,29 +51,91 @@ const Attempt = mongoose.model('Attempt', attemptSchema);
 
 // Email Configuration
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_PORT === '465',
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '465'),
+  secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
 });
 
-const sendEmail = async (to: string, subject: string, text: string) => {
+// Verify transporter on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('[Email] Transporter verification failed:', error);
+  } else {
+    console.log('[Email] Server is ready to take our messages');
+  }
+});
+
+const sendEmail = async (to: string, subject: string, text: string, attachments?: any[]) => {
+  console.log(`[Email] Attempting to send email to: ${to}, Subject: ${subject}`);
+  
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+    console.log(`[Email Mock] ENVIRONMENT VARIABLES MISSING (SMTP_HOST or SMTP_USER). LOGGING ONLY.`);
     console.log(`[Email Mock] To: ${to}, Subject: ${subject}`);
+    if (attachments) console.log(`[Email Mock] Attachments: ${attachments.length} files`);
     return;
   }
+
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.SMTP_FROM || '"STAC Marine" <noreply@stacmarine.com>',
       to,
       subject,
       text,
+      attachments
     });
+    console.log(`[Email] Message sent successfully: ${info.messageId}`);
+    return info;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('[Email] Error sending email:', error);
+    throw error;
+  }
+};
+
+const generateCertificateBuffer = async (name: string): Promise<Buffer> => {
+  const templateUrl = process.env.CERTIFICATE_TEMPLATE_URL || "https://res.cloudinary.com/stacconnect/image/upload/v1777434190/Cybersecurity_certificate_wickx9.png";
+  
+  try {
+    const response = await fetch(templateUrl);
+    const templateBuffer = Buffer.from(await response.arrayBuffer());
+
+    // Create SVG overlay for the name
+    // Coordinates: Centered at ~48.5% height based on previous component logic
+    // Template is ~1200x848
+    const width = 848;
+    const height = 1200;
+    const nameY = height * 0.46; 
+
+    const svgOverlay = `
+      <svg width="${width}" height="${height}">
+        <style>
+          .name { 
+            fill: #0f172a; 
+            font-size: 56px; 
+            font-family: Arial, sans-serif; 
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+        </style>
+        <text x="50%" y="${nameY}" text-anchor="middle" class="name">${name.toUpperCase()}</text>
+      </svg>
+    `;
+
+    return await sharp(templateBuffer)
+      .resize(width, height, { fit: 'cover' })
+      .composite([{
+        input: Buffer.from(svgOverlay),
+        top: 0,
+        left: 0
+      }])
+      .png()
+      .toBuffer();
+  } catch (err) {
+    console.error("[Certificate Generator] Error:", err);
+    throw err;
   }
 };
 
@@ -189,7 +252,8 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
     if (isNewRegistration && profile.email) {
       const welcomeMessage = `Welcome to the STAC Marine Assessment!\n\nThank you for registering. You can now proceed to take your compliance assessment.\n\nGood luck!`;
       sendEmail(profile.email, 'Registration Successful - STAC Marine Assessment', welcomeMessage)
-        .catch(err => console.error("Welcome email failed", err));
+        .then(() => console.log(`[Registration] Welcome email sent to ${profile.email}`))
+        .catch(err => console.error(`[Registration] Welcome email FAILED for ${profile.email}:`, err));
     }
 
     res.json({ 
@@ -243,9 +307,22 @@ app.post('/api/attempts', async (req, res) => {
     if (attempt.percentage >= 80) {
       const user = await User.findOne({ uid: attempt.userId });
       if (user?.email) {
-        const passMessage = `Congratulations ${user.name}!\n\nYou have passed the STAC Marine Assessment with ${attempt.percentage}%.\n\nBest regards,\nThe STAC Marine Team`;
-        sendEmail(user.email, 'Congratulations! You Passed', passMessage)
-          .catch(err => console.error("Pass email failed", err));
+        const passMessage = `Congratulations ${user.name}!\n\nYou have passed the STAC Marine Assessment with ${attempt.percentage}%.\n\nPlease find your official certificate attached to this email.\n\nBest regards,\nThe STAC Marine Team`;
+        
+        generateCertificateBuffer(user.name)
+          .then(buffer => {
+            return sendEmail(
+              user.email, 
+              'Congratulations! Your STAC Marine Certificate', 
+              passMessage,
+              [{
+                filename: `Certificate_${user.name.replace(/\s+/g, '_')}.png`,
+                content: buffer
+              }]
+            );
+          })
+          .then(() => console.log(`[Quiz] Pass email with certificate sent to ${user.email}`))
+          .catch(err => console.error(`[Quiz] Pass email/cert FAILED for ${user.email}:`, err));
       }
     }
     res.json({ success: true, id: attempt._id });
@@ -290,6 +367,12 @@ app.all('/api/*', (req, res) => {
 
 async function startServer() {
   try {
+    console.log('[Config] Environment variables check:');
+    console.log(`- SMTP_HOST: ${process.env.SMTP_HOST ? 'Present' : 'Missing'}`);
+    console.log(`- SMTP_USER: ${process.env.SMTP_USER ? 'Present' : 'Missing'}`);
+    console.log(`- SMTP_PASS: ${process.env.SMTP_PASS ? 'Present (length: ' + process.env.SMTP_PASS.length + ')' : 'Missing'}`);
+    console.log(`- SMTP_FROM: ${process.env.SMTP_FROM ? 'Present (' + process.env.SMTP_FROM + ')' : 'Missing (using default: "STAC Marine" <noreply@stacmarine.com>)'}`);
+
     await connectDB().catch(err => console.error("Initial DB connection failed", err.message));
     
     if (process.env.NODE_ENV !== "production") {
@@ -317,6 +400,8 @@ async function startServer() {
 
 startServer();
 export default app;
+
+
 
 
 /*
