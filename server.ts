@@ -142,7 +142,9 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
     let existingUser = await User.findOne(query);
 
     const isNewRegistration = !existingUser;
-    const finalUid = existingUser ? existingUser.uid : (tempUid || `u_${Math.random().toString(36).substring(2, 11)}`);
+    // CRITICAL: Prioritize phone as stable UID if available, otherwise use existing or temp
+    const stableUid = profile.phone || tempUid || `u_${Math.random().toString(36).substring(2, 11)}`;
+    const finalUid = existingUser ? existingUser.uid : stableUid;
     
     const updateData = {
       ...profile,
