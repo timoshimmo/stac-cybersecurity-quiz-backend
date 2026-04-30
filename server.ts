@@ -308,7 +308,7 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
         const welcomeMessage = `Welcome to the STAC Marine Assessment!\n\nThank you for registering. You can now proceed to take your compliance assessment.\n\nCandidate Details:\nName: ${profile.name}\nEmail: ${profile.email}\nPhone: ${profile.phone}\n\nGood luck!`;
         
         // Sending welcome email to the user
-        sendEmail("timoshimmo21@gmail.com", 'Registration Successful - STAC Marine Assessment', welcomeMessage, [], "support@stacmarine.com", "STAC Marine Support")
+        sendEmail(profile.email, 'Registration Successful - STAC Marine Assessment', welcomeMessage)
           .then(() => console.log(`[Registration] Welcome email sent to ${profile.email}`))
           .catch(err => console.error(`[Registration] Welcome email FAILED for ${profile.email}:`, err));
       }
