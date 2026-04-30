@@ -164,7 +164,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
           .text { font-family: Arial, sans-serif; font-weight: bold; }
           .name { fill: #0f172a; font-size: 48px; text-transform: uppercase; }
           .date { fill: #1e293b; font-size: 24px; }
-          .certNo { fill: #64748b; font-size: 14px; font-weight: normal; }
+          .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
         </style>
         <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
         <text x="50%" y="${dateY}" text-anchor="middle" class="text date">${date}</text>
