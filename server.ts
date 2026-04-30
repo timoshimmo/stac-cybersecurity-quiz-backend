@@ -148,6 +148,8 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const response = await fetch(templateUrl);
     const templateBuffer = Buffer.from(await response.arrayBuffer());
 
+    sharp.cache(false);
+
     // Portrait dimensions
     const width = 848;
     const height = 1200;
