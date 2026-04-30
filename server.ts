@@ -71,7 +71,7 @@ transporter.verify((error, success) => {
   }
 });
 
-const sendEmail = async (to: string, subject: string, text: string, attachments?: any[]) => {
+const sendEmail = async (to: string, subject: string, text: string, attachments?: any[], replyTo?: string, fromName?: string) => {
   console.log(`[Email] Attempting to send email to: ${to}, Subject: ${subject}`);
   
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
@@ -83,15 +83,20 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
   }
 
   try {
-    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || '"STAC Marine" <noreply@stacmarine.com>';
+    const defaultFromName = "STAC Marine";
+    const name = fromName || defaultFromName;
+    const fromAddress = `"${name}" <${process.env.SMTP_USER}>`;
+    
     console.log(`[Email] Sending from: ${fromAddress}`);
+    if (replyTo) console.log(`[Email] Reply-To: ${replyTo}`);
     
     const info = await transporter.sendMail({
       from: fromAddress,
       to,
       subject,
       text,
-      attachments
+      attachments,
+      replyTo: replyTo
     });
     console.log(`[Email] Message sent successfully!`);
     console.log(`[Email] Message ID: ${info.messageId}`);
@@ -294,11 +299,16 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
     
-    if (isNewRegistration && profile.email) {
-      const welcomeMessage = `Welcome to the STAC Marine Assessment!\n\nThank you for registering. You can now proceed to take your compliance assessment.\n\nGood luck!`;
-      sendEmail(profile.email, 'Registration Successful - STAC Marine Assessment', welcomeMessage)
-        .then(() => console.log(`[Registration] Welcome email sent to ${profile.email}`))
-        .catch(err => console.error(`[Registration] Welcome email FAILED for ${profile.email}:`, err));
+    if (isNewRegistration) {
+      console.log(`[Registration] New registration detected. profile.email: "${profile.email}"`);
+      if (profile.email) {
+        const welcomeMessage = `Welcome to the STAC Marine Assessment!\n\nThank you for registering. You can now proceed to take your compliance assessment.\n\nCandidate Details:\nName: ${profile.name}\nEmail: ${profile.email}\nPhone: ${profile.phone}\n\nGood luck!`;
+        
+        // Sending welcome email to the user
+        sendEmail(profile.email, 'Registration Successful - STAC Marine Assessment', welcomeMessage, [], "support@stacmarine.com", "STAC Marine Support")
+          .then(() => console.log(`[Registration] Welcome email sent to ${profile.email}`))
+          .catch(err => console.error(`[Registration] Welcome email FAILED for ${profile.email}:`, err));
+      }
     }
 
     res.json({ 
@@ -369,7 +379,9 @@ app.post('/api/attempts', async (req, res) => {
               [{
                 filename: `Certificate_${user.name.replace(/\s+/g, '_')}.png`,
                 content: buffer
-              }]
+              }],
+              undefined,
+              'STAC Marine Certificates'
             );
           })
           .then(() => console.log(`[Quiz] Pass email with certificate sent to ${user.email}`))
