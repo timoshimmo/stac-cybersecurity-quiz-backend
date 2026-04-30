@@ -313,9 +313,9 @@ app.get('/api/debug/certificate', async (req, res) => {
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <style>
-          .name { font-family: 'Arial'; font-weight: bold; font-size: 52px; fill: #000; text-anchor: middle; text-transform: uppercase; }
-          .date { font-family: 'Arial'; font-weight: bold; font-size: 26px; fill: #1e293b; text-anchor: middle; }
-          .certNo { font-family: 'Arial'; font-size: 14px; fill: #64748b; }
+          .name { font-family: sans-serif; font-weight: bold; font-size: 72px; fill: #000000; text-anchor: middle; text-transform: uppercase; }
+          .date { font-family: sans-serif; font-weight: bold; font-size: 36px; fill: #1e293b; text-anchor: middle; }
+          .certNo { font-family: sans-serif; font-size: 16px; fill: #64748b; }
         </style>
         <text x="${width / 2}" y="${nameY}" class="name">${name}</text>
         <text x="${width / 2}" y="${dateY}" class="date">${dateStr}</text>
