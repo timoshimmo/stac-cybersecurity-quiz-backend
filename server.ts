@@ -71,7 +71,7 @@ transporter.verify((error, success) => {
   }
 });
 
-const sendEmail = async (to: string, subject: string, text: string, attachments?: any[], replyTo?: string, fromName?: string) => {
+const sendEmail = async (to: string, subject: string, text: string, attachments?: any[], fromName?: string) => {
   console.log(`[Email] Attempting to send email to: ${to}, Subject: ${subject}`);
   
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
@@ -88,15 +88,13 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
     const fromAddress = `"${name}" <${process.env.SMTP_USER}>`;
     
     console.log(`[Email] Sending from: ${fromAddress}`);
-    if (replyTo) console.log(`[Email] Reply-To: ${replyTo}`);
     
     const info = await transporter.sendMail({
       from: fromAddress,
       to,
       subject,
       text,
-      attachments,
-      replyTo: replyTo
+      attachments
     });
     console.log(`[Email] Message sent successfully!`);
     console.log(`[Email] Message ID: ${info.messageId}`);
@@ -155,8 +153,8 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const height = 1200;
     
     // Positioning for the new template
-    const nameY = height * 0.44; // Positioned above the name line
-    const dateY = height * 0.815; // Positioned above Date Completed line
+    const nameY = height * 0.38; // Positioned above the name line
+    const dateY = height * 0.75; // Positioned above Date Completed line
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
 
@@ -311,7 +309,9 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
           const result = await sendEmail(
             profile.email,
             'Registration Successful - STAC Marine Assessment',
-            welcomeMessage
+            welcomeMessage,
+            [], 
+            "STAC Connect <stacconnect@zohomail.com>"
           );
           
         
@@ -385,6 +385,24 @@ app.post('/api/attempts', async (req, res) => {
           year: 'numeric'
         });
 
+        try {
+          const buffer = await generateCertificateBuffer(user.name, dateStr);
+          await sendEmail(
+             user.email, 
+            'Congratulations! Your STAC Marine Certificate', 
+            passMessage,
+            [{
+              filename: `Certificate_${user.name.replace(/\s+/g, '_')}.png`,
+              content: buffer
+            }],
+            'STAC Connect <stacconnect@zohomail.com>'
+          );
+          console.log(`[Quiz] Pass email with certificate sent to ${user.email}`);
+        } catch (err) {
+          console.error(`[Quiz] Pass email/cert FAILED for ${user.email}:`, err);
+        }
+
+        /*
         generateCertificateBuffer(user.name, dateStr)
           .then(buffer => {
             return sendEmail(
@@ -395,13 +413,13 @@ app.post('/api/attempts', async (req, res) => {
                 filename: `Certificate_${user.name.replace(/\s+/g, '_')}.png`,
                 content: buffer
               }],
-              undefined,
-              'STAC Marine Certificates'
+              'STAC Connect <stacconnect@zohomail.com>'
             );
           })
           .then(() => console.log(`[Quiz] Pass email with certificate sent to ${user.email}`))
           .catch(err => console.error(`[Quiz] Pass email/cert FAILED for ${user.email}:`, err));
-      }
+          */
+        }
     }
     res.json({ success: true, id: attempt._id });
   } catch (error) {
