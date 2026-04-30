@@ -319,7 +319,7 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
           
           // Sending welcome email to the user
           try {
-            await sendEmail(cleanEmail, 'Registration Successful - STAC Marine Assessment', welcomeMessage, [], "STAC Connect <stacconnect@zohomail.com>");
+            await sendEmail(cleanEmail, 'Registration Successful - STAC Marine Assessment', welcomeMessage, [], "stacconnect@zohomail.com");
             console.log(`[Registration] SUCCESS: Welcome email sent to ${cleanEmail}`);
           } catch (err) {
             console.error(`[Registration] ERROR: Welcome email FAILED for ${cleanEmail}:`, err);
@@ -415,7 +415,7 @@ app.post('/api/attempts', async (req, res) => {
               filename: `Certificate_${user.name.replace(/\s+/g, '_')}.png`,
               content: buffer
             }],
-            'STAC Connect <stacconnect@zohomail.com>'
+            'stacconnect@zohomail.com'
           );
           console.log(`[Quiz] Pass email with certificate sent to ${user.email}`);
         } catch (err) {
