@@ -50,7 +50,7 @@ const Attempt = mongoose.model('Attempt', attemptSchema);
 
 // Email Configuration
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || 'smtp.zoho.com',
   port: parseInt(process.env.SMTP_PORT || '465'),
   secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
   auth: {
@@ -72,10 +72,11 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
   console.log(`[Email] Attempting to send email to: ${to}, Subject: ${subject}`);
   
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.log(`[Email Mock] ENVIRONMENT VARIABLES MISSING (SMTP_HOST or SMTP_USER). LOGGING ONLY.`);
-    console.log(`[Email Mock] To: ${to}, Subject: ${subject}`);
+    console.warn(`[Email Mock] ENVIRONMENT VARIABLES MISSING (SMTP_HOST or SMTP_USER). LOGGING ONLY.`);
+    console.log(`[Email Mock] To: ${to}`);
+    console.log(`[Email Mock] Subject: ${subject}`);
     if (attachments) console.log(`[Email Mock] Attachments: ${attachments.length} files`);
-    return;
+    return { mock: true, success: true };
   }
 
   try {
@@ -86,10 +87,24 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
       text,
       attachments
     });
-    console.log(`[Email] Message sent successfully: ${info.messageId}`);
+    console.log(`[Email] Message sent successfully!`);
+    console.log(`[Email] Message ID: ${info.messageId}`);
+    console.log(`[Email] Response: ${info.response}`);
+    if (info.accepted?.length) console.log(`[Email] Accepted: ${info.accepted.join(', ')}`);
+    if (info.rejected?.length) console.warn(`[Email] Rejected: ${info.rejected.join(', ')}`);
     return info;
   } catch (error) {
-    console.error('[Email] Error sending email:', error);
+    console.error('[Email] CRITICAL FAILURE sending email:');
+    if (error instanceof Error) {
+      console.error(`- Name: ${error.name}`);
+      console.error(`- Message: ${error.message}`);
+      // @ts-ignore
+      if (error.code) console.error(`- Code: ${error.code}`);
+      // @ts-ignore
+      if (error.command) console.error(`- Command: ${error.command}`);
+    } else {
+      console.error(String(error));
+    }
     throw error;
   }
 };
@@ -377,6 +392,8 @@ async function startServer() {
   try {
     console.log('[Config] Environment variables check:');
     console.log(`- SMTP_HOST: ${process.env.SMTP_HOST ? 'Present' : 'Missing'}`);
+    console.log(`- SMTP_PORT: ${process.env.SMTP_PORT || '465 (Default)'}`);
+    console.log(`- SMTP_SECURE: ${process.env.SMTP_SECURE || 'true (Default)'}`);
     console.log(`- SMTP_USER: ${process.env.SMTP_USER ? 'Present' : 'Missing'}`);
     console.log(`- SMTP_PASS: ${process.env.SMTP_PASS ? 'Present (length: ' + process.env.SMTP_PASS.length + ')' : 'Missing'}`);
     console.log(`- SMTP_FROM: ${process.env.SMTP_FROM ? 'Present (' + process.env.SMTP_FROM + ')' : 'Missing (using default: "STAC Marine" <noreply@stacmarine.com>)'}`);
@@ -403,6 +420,7 @@ async function startServer() {
 
 startServer();
 export default app;
+
 
 
 /*
