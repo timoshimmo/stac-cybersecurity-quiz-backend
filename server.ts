@@ -1,6 +1,5 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
@@ -62,9 +61,13 @@ const transporter = nodemailer.createTransport({
 // Verify transporter on startup
 transporter.verify((error, success) => {
   if (error) {
-    console.error('[Email] Transporter verification failed:', error);
+    console.error('[Email] CRITICAL: Transporter verification failed!');
+    console.error(`[Email] Error: ${error.message}`);
+    // @ts-ignore
+    if (error.code) console.error(`[Email] Code: ${error.code}`);
+    console.warn('[Email] Please check if SMTP_USER and SMTP_PASS are correct. If using Zoho/Gmail, an App Password is required.');
   } else {
-    console.log('[Email] Server is ready to take our messages');
+    console.log('[Email] SUCCESS: Transporter is ready to send emails via Zoho');
   }
 });
 
@@ -80,8 +83,11 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
   }
 
   try {
+    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || '"STAC Marine" <noreply@stacmarine.com>';
+    console.log(`[Email] Sending from: ${fromAddress}`);
+    
     const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || '"STAC Marine" <noreply@stacmarine.com>',
+      from: fromAddress,
       to,
       subject,
       text,
@@ -98,6 +104,7 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
     if (error instanceof Error) {
       console.error(`- Name: ${error.name}`);
       console.error(`- Message: ${error.message}`);
+      console.error(`- Stack: ${error.stack}`);
       // @ts-ignore
       if (error.code) console.error(`- Code: ${error.code}`);
       // @ts-ignore
@@ -108,6 +115,27 @@ const sendEmail = async (to: string, subject: string, text: string, attachments?
     throw error;
   }
 };
+
+app.get('/api/email/test', async (req, res) => {
+  if (!process.env.SMTP_USER) {
+    return res.status(500).json({ error: 'SMTP_USER not configured' });
+  }
+
+  try {
+    console.log('[Email Test] Triggering test email...');
+    const result = await sendEmail(
+      'timoshimmo88@gmail.com',
+      'STAC Marine - SMTP Test',
+      'This is a test email from the STAC Marine Assessment system to verify SMTP configuration.'
+    );
+    res.json({ success: true, result });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});
 
 const generateCertificateBuffer = async (name: string, date: string): Promise<Buffer> => {
   const templateUrl = process.env.CERTIFICATE_TEMPLATE_URL || "https://res.cloudinary.com/stacconnect/image/upload/v177541729/certificate_new__2_ohxlvn.png";
@@ -400,17 +428,8 @@ async function startServer() {
 
     await connectDB().catch(err => console.error("Initial DB connection failed", err.message));
     
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      // Don't intercept API routes
-      if (req.url.startsWith('/api')) return;
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`Serving static files from ${distPath}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
