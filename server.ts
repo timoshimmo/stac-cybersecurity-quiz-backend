@@ -302,6 +302,9 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
     if (isNewRegistration) {
       console.log(`[Registration] New registration detected. profile.email: "${profile.email}"`);
       if (profile.email) {
+
+        console.log(`[Welcome Email] profile.email is found: "${profile.email}"`);
+
         const welcomeMessage = `Welcome to the STAC Marine Assessment!\n\nThank you for registering. You can now proceed to take your compliance assessment.\n\nCandidate Details:\nName: ${profile.name}\nEmail: ${profile.email}\nPhone: ${profile.phone}\n\nGood luck!`;
         
         // Sending welcome email to the user
