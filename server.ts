@@ -173,15 +173,31 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
 
     const svgOverlay = `
       <svg width="${width}" height="${height}">
-        <style>
-          .text { font-family: Arial, sans-serif; font-weight: bold; }
-          .name { fill: #0f172a; font-size: 48px; text-transform: uppercase; }
-          .date { fill: #1e293b; font-size: 24px; }
-          .certNo { fill: #64748b; font-size: 14px; font-weight: normal; }
-        </style>
-        <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
-        <text x="50%" y="${dateY}" text-anchor="middle" class="text date">${date}</text>
-        <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
+        <text 
+          x="${width / 2}" 
+          y="${nameY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-weight="bold" 
+          font-size="64px" 
+          fill="#000000" 
+          text-anchor="middle"
+        >${name.toUpperCase()}</text>
+        <text 
+          x="${width / 2}" 
+          y="${dateY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-weight="bold" 
+          font-size="32px" 
+          fill="#1e293b" 
+          text-anchor="middle"
+        >${date}</text>
+        <text 
+          x="${certNoX}" 
+          y="${certNoY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-size="16px" 
+          fill="#64748b"
+        >CERT NO. ${certNo}</text>
       </svg>
     `;
 
@@ -312,14 +328,33 @@ app.get('/api/debug/certificate', async (req, res) => {
 
     const svgOverlay = `
       <svg width="${width}" height="${height}">
-        <style>
-          .name { font-family: sans-serif; font-weight: bold; font-size: 72px; fill: #000000; text-anchor: middle; text-transform: uppercase; }
-          .date { font-family: sans-serif; font-weight: bold; font-size: 36px; fill: #1e293b; text-anchor: middle; }
-          .certNo { font-family: sans-serif; font-size: 16px; fill: #64748b; }
-        </style>
-        <text x="${width / 2}" y="${nameY}" class="name">${name}</text>
-        <text x="${width / 2}" y="${dateY}" class="date">${dateStr}</text>
-        <text x="${certNoX}" y="${certNoY}" class="certNo">CERT NO. STAC/CYB/2026/DEBUG</text>
+        <!-- Debug border -->
+        <rect width="100%" height="100%" fill="none" stroke="#FF0000" stroke-width="4"/>
+        <text 
+          x="${width / 2}" 
+          y="${nameY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-weight="bold" 
+          font-size="72px" 
+          fill="#FF0000" 
+          text-anchor="middle"
+        >${name}</text>
+        <text 
+          x="${width / 2}" 
+          y="${dateY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-weight="bold" 
+          font-size="36px" 
+          fill="#FF0000" 
+          text-anchor="middle"
+        >${dateStr}</text>
+        <text 
+          x="${certNoX}" 
+          y="${certNoY}" 
+          font-family="Arial, Helvetica, sans-serif" 
+          font-size="16px" 
+          fill="#FF0000"
+        >CERT NO. STAC/CYB/2026/DEBUG</text>
       </svg>
     `;
 
@@ -567,6 +602,8 @@ async function startServer() {
 
 startServer();
 export default app;
+
+
 
 
 
