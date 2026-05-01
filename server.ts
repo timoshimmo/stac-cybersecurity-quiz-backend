@@ -157,7 +157,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     
     // Positioning for the new template
     const nameY = height * 0.39; // Positioned significantly higher
-    const dateY = height * 0.75; // Positioned higher in the date section
+    const dateY = height * 0.74; // Positioned higher in the date section
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
 
@@ -166,7 +166,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <style>
           .text { font-family: Arial, sans-serif; font-weight: bold; }
           .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
-          .date { fill: #1e293b; font-size: 22px; }
+          .date { fill: #1e293b; font-size: 21px; }
           .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
         </style>
         <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
