@@ -165,7 +165,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
       <svg width="${width}" height="${height}">
         <style>
           .text { font-family: Arial, sans-serif; font-weight: bold; }
-          .name { fill: #0f172a; font-size: 48px; text-transform: uppercase; }
+          .name { fill: #0f172a; font-size: 44px; text-transform: uppercase; }
           .date { fill: #1e293b; font-size: 24px; }
           .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
         </style>
