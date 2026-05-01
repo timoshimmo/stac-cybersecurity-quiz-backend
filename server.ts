@@ -164,8 +164,8 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const height = 1200;
     
     // Positioning for the new template
-    const nameY = height * 0.35; // Positioned at 35% as per UI manual edit
-    const dateY = height * 0.75; // Positioned at 75% as per UI manual edit
+    const nameY = height * 0.37; // Positioned at 35% as per UI manual edit
+    const dateY = height * 0.74; // Positioned at 75% as per UI manual edit
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
 
