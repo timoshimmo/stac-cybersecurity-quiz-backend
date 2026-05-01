@@ -156,7 +156,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const height = 1200;
     
     // Positioning for the new template
-    const nameY = height * 0.37; // Positioned significantly higher
+    const nameY = height * 0.38; // Positioned significantly higher
     const dateY = height * 0.74; // Positioned higher in the date section
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
@@ -398,7 +398,7 @@ app.post('/api/attempts', async (req, res) => {
     if (attempt.percentage >= 80) {
       const user = await User.findOne({ uid: attempt.userId });
       if (user?.email) {
-        const passMessage = `Congratulations ${user.name}!\n\nYou have passed the STAC Marine Assessment with ${attempt.percentage}%.\n\nPlease find your official certificate attached to this email.\n\nBest regards,\nThe STAC Marine Team`;
+        const passMessage = `Congratulations ${user.name}!\n\nYou have passed the STAC Marine Assessment with ${Math.round(attempt.percentage)}%.\n\nPlease find your official certificate attached to this email.\n\nBest regards,\nThe STAC Marine Team`;
         
         const dateStr = new Date(attempt.timestamp).toLocaleDateString('en-GB', {
           day: '2-digit',
