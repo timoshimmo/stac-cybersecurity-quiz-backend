@@ -164,9 +164,9 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <style>
-          .text { font-family: Arial, sans-serif; font-weight: bold; }
+          .text { font-family: sans-serif; font-weight: bold; }
           .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
-          .date { fill: #1e293b; font-size: 21px; }
+          .date { fill: #1e293b; font-size: 22px; }
           .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
         </style>
         <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
@@ -174,6 +174,42 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
       </svg>
     `;
+
+    /*
+    const svgOverlay = `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <text 
+          x="50%" 
+          y="${nameY}" 
+          font-family="sans-serif" 
+          text-transform: uppercase;
+          font-weight="bold" 
+          font-size="34px" 
+          fill="#0f172a" 
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >${name.toUpperCase()}</text> 
+        <text 
+          x="50%" 
+          y="${dateY}" 
+          font-family="sans-serif" 
+          font-weight="bold" 
+          font-size="22px" 
+          fill="#1e293b" 
+          text-anchor="middle"
+          dominant-baseline="middle"
+        >${date}</text>
+        <text 
+          x="${certNoX}" 
+          y="${certNoY}" 
+          font-family="sans-serif" 
+          font-size="16px" 
+          fill="#191d2d"
+          dominant-baseline="middle"
+        >CERT NO. ${certNo}</text>
+      </svg>
+    `;
+    */
 
     return await sharp(templateBuffer)
       .resize(width, height, { fit: 'cover' })
