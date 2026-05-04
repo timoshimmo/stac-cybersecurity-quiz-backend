@@ -45,8 +45,17 @@ const attemptSchema = new mongoose.Schema({
   comments: String
 }, { strict: false });
 
+const reviewSchema = new mongoose.Schema({
+  userId: String,
+  userName: String,
+  comment: { type: String, required: true },
+  rating: { type: Number, default: 5 },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Attempt = mongoose.model('Attempt', attemptSchema);
+const Review = mongoose.model('Review', reviewSchema);
 
 // Email Configuration
 const transporter = nodemailer.createTransport({
@@ -486,6 +495,32 @@ app.get('/api/attempts/:userId', async (req, res) => {
     res.json(attempts);
   } catch (error) {
     console.error(`[Attempt] ERROR fetching history for "${userId}":`, error);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Reviews API
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { userId, userName, comment, rating } = req.body;
+    const review = new Review({
+      userId,
+      userName,
+      comment,
+      rating: rating || 5
+    });
+    await review.save();
+    res.json({ success: true, review });
+  } catch (error) {
     res.status(500).json({ error: 'Database error' });
   }
 });
