@@ -57,6 +57,8 @@ const User = mongoose.model('User', userSchema);
 const Attempt = mongoose.model('Attempt', attemptSchema);
 const Review = mongoose.model('Review', reviewSchema);
 
+const templateUrl = process.env.CERTIFICATE_TEMPLATE_URL || "https://res.cloudinary.com/stacconnect/image/upload/v177541729/certificate_new__2_ohxlvn.png";
+
 // Email Configuration
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.zoho.com',
@@ -150,11 +152,35 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
+let fontBoldBase64 = '';
+let fontRegularBase64 = '';
+
+const fetchFonts = async () => {
+  if (fontBoldBase64 && fontRegularBase64) return;
+  try {
+    console.log('[Fonts] Fetching Inter fonts for embedding...');
+    const boldRes = await fetch('https://github.com/google/fonts/raw/main/ofl/inter/static/Inter-Bold.ttf');
+    const regularRes = await fetch('https://github.com/google/fonts/raw/main/ofl/inter/static/Inter-Regular.ttf');
+    
+    if (boldRes.ok && regularRes.ok) {
+      fontBoldBase64 = Buffer.from(await boldRes.arrayBuffer()).toString('base64');
+      fontRegularBase64 = Buffer.from(await regularRes.arrayBuffer()).toString('base64');
+      console.log('[Fonts] Inter fonts cached successfully');
+    }
+  } catch (err) {
+    console.error('[Fonts] Error fetching fonts:', err);
+  }
+};
+
 const generateCertificateBuffer = async (name: string, date: string): Promise<Buffer> => {
-  const templateUrl = process.env.CERTIFICATE_TEMPLATE_URL || "https://res.cloudinary.com/stacconnect/image/upload/v177541729/certificate_new__2_ohxlvn.png";
+  
   const certNo = `STAC/CYB/2026/${Math.floor(1000 + Math.random() * 9000)}`;
   
   try {
+
+     // Ensure fonts are loaded
+    await fetchFonts();
+
     const response = await fetch(templateUrl);
     const templateBuffer = Buffer.from(await response.arrayBuffer());
 
@@ -172,12 +198,26 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
 
     const svgOverlay = `
       <svg width="${width}" height="${height}">
-        <style>
-          .text { font-family: 'Liberation Sans', 'DejaVu Sans', 'Arial', sans-serif; font-weight: bold; }
-          .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
-          .date { fill: #1e293b; font-size: 22px; }
-          .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
-        </style>
+        <defs>
+          <style type="text/css">
+             @font-face {
+              font-family: 'Inter';
+              src: url(data:font/ttf;charset=utf-8;base64,${fontRegularBase64});
+              font-weight: normal;
+              font-style: normal;
+            }
+            @font-face {
+              font-family: 'Inter';
+              src: url(data:font/ttf;charset=utf-8;base64,${fontBoldBase64});
+              font-weight: bold;
+              font-style: normal;
+            }
+            .text { font-family: 'Inter', sans-serif; font-weight: bold; }
+            .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
+            .date { fill: #1e293b; font-size: 22px; }
+            .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
+          </style>
+        </defs>
         <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
         <text x="50%" y="${dateY}" text-anchor="middle" class="text date">${date}</text>
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
