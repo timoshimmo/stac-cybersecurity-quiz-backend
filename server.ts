@@ -537,6 +537,16 @@ app.post('/api/reviews', async (req, res) => {
   }
 });
 
+// Admin API: Fetch all users
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 // Admin API: Fetch all attempts with user details
 app.get('/api/admin/attempts', async (req, res) => {
   try {
@@ -559,6 +569,56 @@ app.get('/api/admin/attempts', async (req, res) => {
   } catch (error) {
     console.error('[Admin Attempts] Error:', error);
     res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Admin API: Update user role
+app.patch('/api/admin/users/:uid/role', async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['USER', 'ADMIN'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+    const user = await User.findOneAndUpdate(
+      { uid: req.params.uid },
+      { role, updatedAt: new Date() },
+      { new: true }
+    );
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+// Admin API: Toggle user role (no changes needed to existing code, just adding new route below)
+
+// API: Download certificate for a user
+app.get('/api/certificate/:userId', async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.params.userId });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const attempt = await Attempt.findOne({ 
+      userId: user.uid, 
+      percentage: { $gte: 80 } 
+    }).sort({ timestamp: -1 });
+
+    if (!attempt) return res.status(404).json({ error: 'No successful assessment found for this user' });
+
+    const dateStr = new Date(attempt.timestamp).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const buffer = await generateCertificateBuffer(user.name || 'Candidate', dateStr);
+    
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename="Certificate_${(user.name || 'Candidate').replace(/\s+/g, '_')}.png"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('[Certificate Download] Error:', error);
+    res.status(500).json({ error: 'Failed to generate certificate' });
   }
 });
 
