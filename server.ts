@@ -525,6 +525,31 @@ app.post('/api/reviews', async (req, res) => {
   }
 });
 
+// Admin API: Fetch all attempts with user details
+app.get('/api/admin/attempts', async (req, res) => {
+  try {
+    const attempts = await Attempt.find().sort({ timestamp: -1 }).lean();
+    const userIds = [...new Set(attempts.map(a => a.userId))];
+    const users = await User.find({ uid: { $in: userIds } }).lean();
+    
+    const userMap = users.reduce((acc: any, user: any) => {
+      acc[user.uid] = user;
+      return acc;
+    }, {});
+
+    const enrichedAttempts = attempts.map((attempt: any) => ({
+      ...attempt,
+      userName: userMap[attempt.userId]?.name || 'Unknown',
+      userEmail: userMap[attempt.userId]?.email || 'Unknown',
+    }));
+
+    res.json(enrichedAttempts);
+  } catch (error) {
+    console.error('[Admin Attempts] Error:', error);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 app.get('/api/info', (req, res) => {
   const routes = (app as any)._router?.stack
     .filter((r: any) => r.route)
