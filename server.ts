@@ -340,11 +340,23 @@ app.post(['/api/registration', '/api/registration/:userId'], async (req, res) =>
       
       console.log(`[Registration] Identity resolved: phone=${cleanPhone}, existing=${existingUser?.uid}, final=${finalUid}`);
       
+      // Determine role - default USER, but make certain emails ADMIN
+      let role = 'USER';
+      const adminEmails = [
+        'tokmangwang@gmail.com',
+        'moses.ibrahim@stac-marine.com'
+      ];
+      
+      if (cleanEmail && adminEmails.includes(cleanEmail)) {
+        role = 'ADMIN';
+      }
+
       const updateData = {
         ...profile,
         uid: finalUid,
         email: cleanEmail,
         phone: cleanPhone,
+        role: role,
         updatedAt: new Date()
       };
       delete updateData._id;
