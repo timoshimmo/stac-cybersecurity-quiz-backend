@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { FONT_BASE64 } from './lib/fontBase64.js';
 
 dotenv.config();
 
@@ -213,7 +214,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
           <style type="text/css">
              @font-face {
               font-family: 'Inter-Regular';
-              src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+              src: url('data:font/truetype;base64,${FONT_BASE64}') format('truetype');
               font-weight: normal;
               font-style: normal;
             }
