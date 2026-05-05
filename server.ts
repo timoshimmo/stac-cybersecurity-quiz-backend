@@ -5,12 +5,21 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
 import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://helpstacconnect_db_user:TVS0hb66PtxWn5pU@stacmarine.u3qbxiu.mongodb.net/quiz?appName=stacmarine";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const fontPath = path.join(__dirname, 'fonts', 'Inter-Regular.ttf');
+const fontBase64 = fs.readFileSync(fontPath).toString('base64');
 
 app.use(cors());
 app.use(express.json());
@@ -152,6 +161,7 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
+/*
 let fontBoldBase64 = '';
 let fontRegularBase64 = '';
 
@@ -171,6 +181,7 @@ const fetchFonts = async () => {
     console.error('[Fonts] Error fetching fonts:', err);
   }
 };
+*/
 
 const generateCertificateBuffer = async (name: string, date: string): Promise<Buffer> => {
   
@@ -179,7 +190,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
   try {
 
      // Ensure fonts are loaded
-    await fetchFonts();
+    //await fetchFonts();
 
     const response = await fetch(templateUrl);
     const templateBuffer = Buffer.from(await response.arrayBuffer());
@@ -201,18 +212,12 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <defs>
           <style type="text/css">
              @font-face {
-              font-family: 'Inter';
-              src: url(data:font/ttf;charset=utf-8;base64,${fontRegularBase64});
+              font-family: 'Inter-Regular';
+              src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
               font-weight: normal;
               font-style: normal;
             }
-            @font-face {
-              font-family: 'Inter';
-              src: url(data:font/ttf;charset=utf-8;base64,${fontBoldBase64});
-              font-weight: bold;
-              font-style: normal;
-            }
-            .text { font-family: 'Inter', sans-serif; font-weight: bold; }
+            .text { font-family: 'Inter-Regular', sans-serif; font-weight: bold; }
             .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
             .date { fill: #1e293b; font-size: 22px; }
             .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
