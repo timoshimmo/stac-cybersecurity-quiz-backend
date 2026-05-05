@@ -173,7 +173,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <style>
-          .text { font-family: sans-serif; font-weight: bold; }
+          .text { font-family: 'Liberation Sans', 'DejaVu Sans', 'Arial', sans-serif; font-weight: bold; }
           .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
           .date { fill: #1e293b; font-size: 22px; }
           .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
