@@ -202,11 +202,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
   try {
 
      // Ensure fonts are loaded
-    await fetchFonts();
-
-    if (!fontBold || !fontRegular) {
-      throw new Error("Fonts failed to load");
-    }
+    //await fetchFonts();
 
 
     const response = await fetch(templateUrl);
