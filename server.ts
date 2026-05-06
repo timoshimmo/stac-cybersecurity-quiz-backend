@@ -20,6 +20,9 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://helpstacconnect_db
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const fontPath = path.join(process.cwd(), 'fonts', 'Inter-Regular.ttf');
+const fontBase64 = fs.readFileSync(fontPath).toString('base64');
+
 // Use process.cwd() as fallback if __dirname fails
 //const fontPath = path.join(process.cwd(), 'fonts', 'Inter-Regular.ttf');
 // fontBase64 = fs.readFileSync(fontPath).toString('base64');
@@ -27,8 +30,8 @@ const __dirname = path.dirname(__filename);
 //const fontPath = path.join(__dirname, 'fonts', 'Inter-Regular.ttf');
 //const fontBase64 = fs.readFileSync(fontPath).toString('base64');
 
-path.resolve(process.cwd(), 'fonts', 'fonts.conf');
-path.resolve(process.cwd(), 'fonts', 'Inter-Regular.ttf');
+//path.resolve(process.cwd(), 'fonts', 'fonts.conf');
+//path.resolve(process.cwd(), 'fonts', 'Inter-Regular.ttf');
 
 app.use(cors());
 app.use(express.json());
@@ -256,6 +259,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     `;
 */
 
+/*
  const svgOverlay = `
       <svg width="${width}" height="${height}">
         <defs>
@@ -276,15 +280,16 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
       </svg>
     `;
+    */
 
-   /* 
+    
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <defs>
           <style type="text/css">
              @font-face {
               font-family: 'Inter-Regular';
-              src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
+              src: url('data:font/truetype;base64,${FONT_BASE64}') format('truetype');
               font-weight: normal;
               font-style: normal;
             }
@@ -299,7 +304,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
       </svg>
     `;
-*/
+
     /*
     const svgOverlay = `
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
