@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
+import opentype from 'opentype.js';
 import { fileURLToPath } from 'url';
 import { FONT_BASE64 } from './lib/fontBase64.js';
 
@@ -166,27 +167,27 @@ app.get('/api/email/test', async (req, res) => {
   }
 });
 
-/*
-let fontBoldBase64 = '';
-let fontRegularBase64 = '';
+
+let fontBold: opentype.Font | null = null;
+let fontRegular: opentype.Font | null = null;
 
 const fetchFonts = async () => {
-  if (fontBoldBase64 && fontRegularBase64) return;
+  if (fontBold && fontRegular) return;
   try {
     console.log('[Fonts] Fetching Inter fonts for embedding...');
     const boldRes = await fetch('https://github.com/google/fonts/raw/main/ofl/inter/static/Inter-Bold.ttf');
     const regularRes = await fetch('https://github.com/google/fonts/raw/main/ofl/inter/static/Inter-Regular.ttf');
     
     if (boldRes.ok && regularRes.ok) {
-      fontBoldBase64 = Buffer.from(await boldRes.arrayBuffer()).toString('base64');
-      fontRegularBase64 = Buffer.from(await regularRes.arrayBuffer()).toString('base64');
-      console.log('[Fonts] Inter fonts cached successfully');
+      fontBold = opentype.parse(await boldRes.arrayBuffer());
+      fontRegular = opentype.parse(await regularRes.arrayBuffer());
+      console.log('[Fonts] Inter fonts parsed successfully');
     }
   } catch (err) {
     console.error('[Fonts] Error fetching fonts:', err);
   }
 };
-*/
+
 
 const generateCertificateBuffer = async (name: string, date: string): Promise<Buffer> => {
   
@@ -195,7 +196,12 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
   try {
 
      // Ensure fonts are loaded
-    //await fetchFonts();
+    await fetchFonts();
+
+    if (!fontBold || !fontRegular) {
+      throw new Error("Fonts failed to load");
+    }
+
 
     const response = await fetch(templateUrl);
     const templateBuffer = Buffer.from(await response.arrayBuffer());
@@ -212,6 +218,40 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
 
+    console.log(`[Certificate Generator] Rendering "${name}" (Paths), Date: ${date}, CertNo=${finalCertNo}`);
+
+    // Convert text to paths using opentype.js
+    // Name (Bold, 52px)
+    const nameText = name.toUpperCase();
+    const nameFontSize = 44;
+    const namePathObj = fontBold.getPath(nameText, 0, 0, nameFontSize);
+    const nameBBox = namePathObj.getBoundingBox();
+    const nameW = nameBBox.x2 - nameBBox.x1;
+    // (width - nameW) / 2 to center horizontally
+    // nameY + (nameFontSize / 2.5) to center vertically approximately on the line
+    const namePath = fontBold.getPath(nameText, (width - nameW) / 2, nameY + (nameFontSize / 2.5), nameFontSize).toPathData(2);
+
+    // Date (Bold, 28px)
+    const dateFontSize = 22;
+    const datePathObj = fontBold.getPath(date, 0, 0, dateFontSize);
+    const dateBBox = datePathObj.getBoundingBox();
+    const dateW = dateBBox.x2 - dateBBox.x1;
+    const datePath = fontBold.getPath(date, (width - dateW) / 2, dateY + (dateFontSize / 2.5), dateFontSize).toPathData(2);
+
+    // Cert No (Regular, 16px)
+    const certNoText = `CERT NO. ${certNo}`;
+    const certNoFontSize = 16;
+    const certNoPath = fontRegular.getPath(certNoText, certNoX, certNoY + (certNoFontSize / 2.5), certNoFontSize).toPathData(2);
+
+ const svgOverlay = `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        <path d="${namePath}" fill="#0f172a" />
+        <path d="${datePath}" fill="#1e293b" />
+        <path d="${certNoPath}" fill="#191d2d" />
+      </svg>
+    `;
+
+    /*
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <defs>
@@ -233,6 +273,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
       </svg>
     `;
+    */
 
     /*
     const svgOverlay = `
