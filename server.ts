@@ -218,7 +218,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
           <style type="text/css">
              @font-face {
               font-family: 'Inter-Regular';
-              src: url('data:font/truetype;base64,${FONT_BASE64}') format('truetype');
+              src: url('data:font/truetype;base64,${fontBase64}') format('truetype');
               font-weight: normal;
               font-style: normal;
             }
