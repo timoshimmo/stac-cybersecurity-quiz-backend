@@ -19,8 +19,12 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://helpstacconnect_db
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const fontPath = path.join(__dirname, 'fonts', 'Inter-Regular.ttf');
+// Use process.cwd() as fallback if __dirname fails
+const fontPath = path.join(process.cwd(), 'fonts', 'Inter-Regular.ttf');
 const fontBase64 = fs.readFileSync(fontPath).toString('base64');
+
+//const fontPath = path.join(__dirname, 'fonts', 'Inter-Regular.ttf');
+//const fontBase64 = fs.readFileSync(fontPath).toString('base64');
 
 app.use(cors());
 app.use(express.json());
