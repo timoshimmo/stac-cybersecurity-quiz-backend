@@ -221,7 +221,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
     const certNoY = height * 0.94; // Bottom left area
     const certNoX = width * 0.08;
 
-    console.log(`[Certificate Generator] Rendering "${name}" (Paths), Date: ${date}, CertNo=${finalCertNo}`);
+    console.log(`[Certificate Generator] Rendering "${name}" (Paths), Date: ${date}, CertNo=${certNo}`);
 
     /*
     // Convert text to paths using opentype.js
