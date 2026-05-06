@@ -21,11 +21,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Use process.cwd() as fallback if __dirname fails
-const fontPath = path.join(process.cwd(), 'fonts', 'Inter-Regular.ttf');
-const fontBase64 = fs.readFileSync(fontPath).toString('base64');
+//const fontPath = path.join(process.cwd(), 'fonts', 'Inter-Regular.ttf');
+// fontBase64 = fs.readFileSync(fontPath).toString('base64');
 
 //const fontPath = path.join(__dirname, 'fonts', 'Inter-Regular.ttf');
 //const fontBase64 = fs.readFileSync(fontPath).toString('base64');
+
+path.resolve(process.cwd(), 'fonts', 'fonts.conf');
+path.resolve(process.cwd(), 'fonts', 'Inter-Regular.ttf');
 
 app.use(cors());
 app.use(express.json());
@@ -220,6 +223,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
 
     console.log(`[Certificate Generator] Rendering "${name}" (Paths), Date: ${date}, CertNo=${finalCertNo}`);
 
+    /*
     // Convert text to paths using opentype.js
     // Name (Bold, 52px)
     const nameText = name.toUpperCase();
@@ -250,8 +254,30 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <path d="${certNoPath}" fill="#191d2d" />
       </svg>
     `;
+*/
 
-    /*
+ const svgOverlay = `
+      <svg width="${width}" height="${height}">
+        <defs>
+          <style type="text/css">
+             @font-face {
+              font-family: 'Inter-Regular';
+              font-weight: normal;
+              font-style: normal;
+            }
+            .text { font-family: 'Inter-Regular', sans-serif; font-weight: bold; }
+            .name { fill: #0f172a; font-size: 34px; text-transform: uppercase; }
+            .date { fill: #1e293b; font-size: 22px; }
+            .certNo { fill: #191d2d; font-size: 14px; font-weight: normal; }
+          </style>
+        </defs>
+        <text x="50%" y="${nameY}" text-anchor="middle" class="text name">${name.toUpperCase()}</text>
+        <text x="50%" y="${dateY}" text-anchor="middle" class="text date">${date}</text>
+        <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
+      </svg>
+    `;
+
+   /* 
     const svgOverlay = `
       <svg width="${width}" height="${height}">
         <defs>
@@ -273,8 +299,7 @@ const generateCertificateBuffer = async (name: string, date: string): Promise<Bu
         <text x="${certNoX}" y="${certNoY}" text-anchor="start" class="text certNo">CERT NO. ${certNo}</text>
       </svg>
     `;
-    */
-
+*/
     /*
     const svgOverlay = `
       <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
